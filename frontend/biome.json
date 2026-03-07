@@ -24,6 +24,12 @@
       }
     }
   },
+  "css": {
+    "parser": {
+      "cssModules": false,
+      "tailwindDirectives": true
+    }
+  },
   "javascript": {
     "formatter": {
       "semicolons": "asNeeded",
@@ -37,8 +43,5 @@
         "organizeImports": "on"
       }
     }
-  },
-  "files": {
-    "includes": ["src/**/*.ts", "src/**/*.tsx", "*.json", "*.js"]
   }
 }
