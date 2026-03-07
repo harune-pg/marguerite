@@ -11,9 +11,9 @@
 ```bash
 bun dev          # 開発サーバー起動
 bun run build    # ビルド（tsc + vite build）
-bun run lint     # Biome lint + format チェック
-bun run check    # Biome lint + format 自動修正
-bun run format   # Biome フォーマット適用
+bun run lint     # Biome lint（コード品質チェックのみ）
+bun run check    # Biome check（lint + format の問題を検出／自動修正）
+bun run format   # Biome format（コードを自動整形）
 ```
 
 ## コード規約
