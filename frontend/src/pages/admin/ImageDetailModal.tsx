@@ -1,0 +1,136 @@
+import { Calendar, EyeOff, X } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+} from "@/components/ui/dialog"
+import type { BaseImage } from "@/types"
+
+type ImageDetailModalProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  image: BaseImage
+  index: number
+  onToggleActive: () => void
+}
+
+export default function ImageDetailModal({
+  open,
+  onOpenChange,
+  image,
+  index,
+  onToggleActive,
+}: ImageDetailModalProps) {
+  const infoRows = [
+    {
+      label: "ジャンル",
+      value: image.generation_input.genre ?? "未設定",
+    },
+    { label: "店名", value: image.generation_input.store_name },
+    {
+      label: "紹介文",
+      value: image.generation_input.description ?? "未設定",
+    },
+    {
+      label: "看板メニュー",
+      value: image.generation_input.photo_url ? "あり" : "未設定",
+    },
+  ]
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal>
+        <DialogOverlay />
+        <DialogContent
+          showCloseButton={false}
+          className="flex h-[780px] max-h-[90vh] w-[1160px] max-w-[95vw] gap-0 overflow-hidden p-0"
+        >
+          {/* 左：画像パネル */}
+          <div className="relative flex flex-1 items-center justify-center bg-neutral-900">
+            {image.image_url ? (
+              <img
+                src={image.image_url}
+                alt={`ベース画像 #${index}`}
+                className="max-h-[420px] max-w-[560px] object-contain"
+              />
+            ) : (
+              <div className="text-gray-500">画像なし</div>
+            )}
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="absolute top-4 left-4 flex size-10 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          {/* 右：情報パネル */}
+          <div className="flex w-[380px] flex-col border-l bg-white p-6">
+            {/* タイトル & バッジ */}
+            <h2 className="text-lg font-semibold text-gray-900">
+              ベース画像 #{index}
+            </h2>
+            <div className="mt-2">
+              {image.is_active ? (
+                <Badge className="bg-green-100 text-green-700">公開中</Badge>
+              ) : (
+                <Badge className="bg-gray-100 text-gray-600">下書き</Badge>
+              )}
+            </div>
+
+            {/* 日付 */}
+            <div className="mt-3 flex items-center gap-1 text-sm text-gray-400">
+              <Calendar className="size-4" />
+              {new Date(image.created_at).toLocaleDateString("ja-JP")}
+            </div>
+
+            {/* 生成時の情報 */}
+            <div className="mt-6">
+              <h3 className="mb-3 text-sm font-medium text-gray-500">
+                生成時の情報
+              </h3>
+              <div className="rounded-lg border">
+                {infoRows.map((row, i) => (
+                  <div
+                    key={row.label}
+                    className={`flex px-4 py-3 text-sm ${i < infoRows.length - 1 ? "border-b" : ""}`}
+                  >
+                    <span className="w-24 shrink-0 font-medium text-gray-500">
+                      {row.label}
+                    </span>
+                    <span className="text-gray-900">{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* アクションボタン */}
+            <div className="mt-auto pt-6">
+              {image.is_active ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={onToggleActive}
+                >
+                  <EyeOff className="mr-2 size-4" />
+                  非公開にする
+                </Button>
+              ) : (
+                <Button
+                  className="w-full bg-indigo-500 hover:bg-indigo-600"
+                  onClick={onToggleActive}
+                >
+                  公開する
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
+  )
+}
