@@ -5,15 +5,15 @@
 - Framework: React 19 + TypeScript
 - Build: Vite 7
 - UI: shadcn/ui + Tailwind CSS v4
-- Linter: ESLint + Prettier
+- Linter/Formatter: Biome
 
 ## コマンド
 ```bash
 bun dev          # 開発サーバー起動
 bun run build    # ビルド（tsc + vite build）
-bun run lint     # ESLint
-bunx prettier --check src  # フォーマットチェック
-bunx prettier --write src  # フォーマット適用
+bun run lint     # Biome lint + format チェック
+bun run check    # Biome lint + format 自動修正
+bun run format   # Biome フォーマット適用
 ```
 
 ## コード規約
@@ -26,13 +26,10 @@ bunx prettier --write src  # フォーマット適用
 ### import
 - **絶対パスを使う**: `@/` プレフィックスで src/ 配下を参照（例: `import { Button } from "@/components/ui/button"`）
 - 相対パスは同一ディレクトリ内のみ許容
-- import 順序は ESLint (`import-x/order`) で強制:
-  1. builtin → external → internal → parent → sibling → index
-  2. グループ間に空行を入れる
-  3. アルファベット順
+- import 順序は Biome (`organizeImports`) で自動整理
 
 ### フォーマット
-- Prettier で統一（`.prettierrc` 参照）
+- Biome で統一（`biome.json` 参照）
 - セミコロンなし
 - ダブルクォート
 - trailing comma あり
