@@ -11,12 +11,12 @@ import QrCodeModal from "./QrCodeModal"
 type DashboardContext = {
   store: Store
   baseImages: BaseImage[]
-  toggleImageActive: (imageId: string) => void
-  addGeneratingImage: () => string
+  toggleImageActive: (imageId: string) => Promise<void>
+  generateImage: () => Promise<string>
 }
 
 export default function StoreDashboardPage() {
-  const { store, baseImages, toggleImageActive, addGeneratingImage } =
+  const { store, baseImages, toggleImageActive, generateImage } =
     useOutletContext<DashboardContext>()
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -35,8 +35,15 @@ export default function StoreDashboardPage() {
 
   const selectedImage = baseImages.find((img) => img.id === selectedImageId)
 
-  const handleGenerate = () => {
-    addGeneratingImage()
+  const [generating, setGenerating] = useState(false)
+
+  const handleGenerate = async () => {
+    setGenerating(true)
+    try {
+      await generateImage()
+    } finally {
+      setGenerating(false)
+    }
     setGenerateOpen(false)
   }
 
@@ -148,6 +155,7 @@ export default function StoreDashboardPage() {
         onOpenChange={setGenerateOpen}
         store={store}
         onConfirm={handleGenerate}
+        loading={generating}
       />
       {selectedImage && (
         <ImageDetailModal

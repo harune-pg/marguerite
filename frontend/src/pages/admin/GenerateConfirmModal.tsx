@@ -13,6 +13,7 @@ type GenerateConfirmModalProps = {
   onOpenChange: (open: boolean) => void
   store: Store
   onConfirm: () => void
+  loading?: boolean
 }
 
 export default function GenerateConfirmModal({
@@ -20,6 +21,7 @@ export default function GenerateConfirmModal({
   onOpenChange,
   store,
   onConfirm,
+  loading,
 }: GenerateConfirmModalProps) {
   const infoRows = [
     { label: "ジャンル", value: store.genre ?? "未設定" },
@@ -69,15 +71,16 @@ export default function GenerateConfirmModal({
 
         {/* ボタン */}
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             キャンセル
           </Button>
           <Button
             className="bg-gradient-to-r from-indigo-400 via-indigo-500 to-indigo-600 text-white hover:from-indigo-500 hover:via-indigo-600 hover:to-indigo-700"
             onClick={onConfirm}
+            disabled={loading}
           >
             <Sparkles className="mr-2 size-4" />
-            生成する
+            {loading ? "生成中..." : "生成する"}
           </Button>
         </div>
       </DialogContent>

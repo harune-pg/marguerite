@@ -32,12 +32,12 @@
 - [ ] 客側: ランディング画面（/play/{store_id}）
 - [ ] 客側: ゲーム画面（上下2枚、タッチ操作、タップ判定）
 - [ ] 客側: 結果画面
-- [ ] 店側: 登録画面（/admin/register）
-- [ ] 店側: 管理画面（/admin/stores/{store_id}）
-- [ ] QRコード表示（qrcode.react）
+- [x] 店側: 登録画面（/admin/register）
+- [x] 店側: 管理画面（/admin/stores/{store_id}）
+- [x] QRコード表示（qrcode.react）
 
 ## 結合
-- [ ] FE ↔ BE API結合
+- [x] FE ↔ BE API結合（管理画面: 店舗CRUD・画像管理・生成）
 - [ ] 画像生成パイプライン ↔ BE結合
 - [ ] 通しテスト（店舗登録 → QR発行 → 客プレイ → 結果表示）
 
