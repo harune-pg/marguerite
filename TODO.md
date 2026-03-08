@@ -6,7 +6,7 @@
 ## 進行中（localで作業）
 
 ### H: デザイン
-- [ ] 画面デザイン完成（pencilで作成、SPEC.mdに反映）
+- [x] 画面デザイン完成（pencilで作成、SPEC.mdに反映）
 
 ### H: 画像生成パイプライン検証
 - [ ] パイプラインの検証・試行（marguerite_spec/ 内で実施、結果をSPECに反映）
@@ -22,23 +22,23 @@
 - [ ] フォールバック: デモ用画像の事前準備（パイプラインが間に合わない場合）
 
 ### K: バックエンドAPI
-- [ ] 詳細は backend/TODO.md を参照
-- [ ] Phase 1: 店舗CRUD
-- [ ] Phase 2: ベース画像管理API（mock）
-- [ ] Phase 3: ゲームAPI（mock）
+- [x] 詳細は backend/TODO.md を参照
+- [x] Phase 1: 店舗CRUD
+- [x] Phase 2: ベース画像管理API（mock）
+- [x] Phase 3: ゲームAPI（mock）
 
 ### H: フロントエンド（AI agentに任せる）
 - [x] React + TypeScript プロジェクトセットアップ（bun + Vite + shadcn/ui）
-- [ ] 客側: ランディング画面（/play/{store_id}）
-- [ ] 客側: ゲーム画面（上下2枚、タッチ操作、タップ判定）
-- [ ] 客側: 結果画面
-- [ ] 店側: 登録画面（/admin/register）
-- [ ] 店側: 管理画面（/admin/stores/{store_id}）
-- [ ] QRコード表示（qrcode.react）
+- [x] 客側: ランディング画面（/play/{store_id}）
+- [x] 客側: ゲーム画面（上下2枚、タッチ操作、タップ判定）
+- [x] 客側: 結果画面
+- [x] 店側: 登録画面（/admin/register）
+- [x] 店側: 管理画面（/admin/stores/{store_id}）
+- [x] QRコード表示（qrcode.react）
 
 ## 結合
-- [ ] FE ↔ BE API結合
-- [ ] 画像生成パイプライン ↔ BE結合
+- [x] FE ↔ BE API結合
+- [x] 画像生成パイプライン ↔ BE結合
 - [ ] 通しテスト（店舗登録 → QR発行 → 客プレイ → 結果表示）
 
 ## SHOULD（余裕があれば）
@@ -48,7 +48,7 @@
 - [ ] 間違い発見時のエフェクト
 - [ ] QRコードにテーブル番号（/play/{store_id}?table=5）
 - [ ] プロダクトLP（/）
-- [ ] CORS設定
+- [x] CORS設定
 
 ## デモ準備
 - [ ] デモ用店舗データ作成
