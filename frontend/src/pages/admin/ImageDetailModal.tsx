@@ -3,8 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
-  DialogOverlay,
-  DialogPortal,
+  DialogContent,
 } from "@/components/ui/dialog"
 import type { BaseImage } from "@/types"
 
@@ -41,10 +40,10 @@ export default function ImageDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPortal>
-        <DialogOverlay />
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="flex h-[780px] max-h-[90vh] w-[1160px] max-w-[95vw] overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-foreground/10">
+      <DialogContent
+        showCloseButton={false}
+        className="flex h-[780px] max-h-[90vh] w-[1160px] max-w-[95vw] overflow-hidden p-0 sm:max-w-[1160px]"
+      >
           {/* 左：画像パネル */}
           <div className="relative flex flex-1 items-center justify-center bg-neutral-900">
             {image.image_url ? (
@@ -144,9 +143,7 @@ export default function ImageDetailModal({
               )}
             </div>
           </div>
-          </div>
-        </div>
-      </DialogPortal>
+      </DialogContent>
     </Dialog>
   )
 }

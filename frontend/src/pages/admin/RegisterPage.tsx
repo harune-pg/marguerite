@@ -26,8 +26,8 @@ export default function RegisterPage() {
     )
     const maxId = existingStores.reduce(
       (max: number, s: { id: number | string }) => {
-        const id = typeof s.id === "number" ? s.id : 0
-        return Math.max(max, id)
+        const numericId = Number(s.id)
+        return Number.isFinite(numericId) ? Math.max(max, numericId) : max
       },
       0,
     )

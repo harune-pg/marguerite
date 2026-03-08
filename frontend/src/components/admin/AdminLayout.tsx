@@ -1,11 +1,16 @@
-import { Outlet, useParams } from "react-router-dom"
+import { Navigate, Outlet, useParams } from "react-router-dom"
 import Sidebar from "@/components/admin/Sidebar"
 import { useStore } from "@/hooks/useStore"
 
 export default function AdminLayout() {
   const { storeId } = useParams<{ storeId: string }>()
+
+  if (!storeId || Number.isNaN(Number(storeId))) {
+    return <Navigate to="/admin/register" replace />
+  }
+
   const { store, baseImages, updateStore, toggleImageActive, addGeneratingImage } =
-    useStore(storeId!)
+    useStore(storeId)
 
   if (!store) {
     return (
@@ -17,7 +22,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar storeName={store.name} storeId={storeId!} />
+      <Sidebar storeName={store.name} storeId={storeId} />
       <main className="flex-1 overflow-auto">
         <Outlet
           context={{

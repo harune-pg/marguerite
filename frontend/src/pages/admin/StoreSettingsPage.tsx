@@ -25,7 +25,7 @@ export default function StoreSettingsPage() {
   const { store, updateStore } = useOutletContext<SettingsContext>()
 
   const [name, setName] = useState("")
-  const [genre, setGenre] = useState("")
+  const [genre, setGenre] = useState<Store["genre"] | "">("")
   const [description, setDescription] = useState("")
   const [menuDescription, setMenuDescription] = useState("")
   const [saved, setSaved] = useState(false)
@@ -43,7 +43,7 @@ export default function StoreSettingsPage() {
     e.preventDefault()
     updateStore({
       name: name.trim(),
-      genre: (genre || undefined) as Store["genre"],
+      genre: genre || undefined,
       description: description.trim() || undefined,
       menu_description: menuDescription.trim() || undefined,
     })
@@ -70,8 +70,8 @@ export default function StoreSettingsPage() {
             <div className="mt-6 space-y-5">
               {/* ジャンル */}
               <div className="space-y-2">
-                <Label>ジャンル</Label>
-                <Select value={genre} onValueChange={(v) => setGenre(v ?? "")}>
+                <Label htmlFor="genre">ジャンル</Label>
+                <Select value={genre} onValueChange={(v) => setGenre((v as Store["genre"]) ?? "")}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="選択してください" />
                   </SelectTrigger>
@@ -87,8 +87,9 @@ export default function StoreSettingsPage() {
 
               {/* 店名 */}
               <div className="space-y-2">
-                <Label>店名</Label>
+                <Label htmlFor="store-name">店名</Label>
                 <Input
+                  id="store-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="例: カフェまるまる"
@@ -98,8 +99,9 @@ export default function StoreSettingsPage() {
 
               {/* 紹介文 */}
               <div className="space-y-2">
-                <Label>紹介文</Label>
+                <Label htmlFor="description">紹介文</Label>
                 <Textarea
+                  id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="お店の紹介文を入力してください（200文字以内）"
@@ -110,8 +112,9 @@ export default function StoreSettingsPage() {
 
               {/* 看板メニュー説明 */}
               <div className="space-y-2">
-                <Label>看板メニュー説明</Label>
+                <Label htmlFor="menu-description">看板メニュー説明</Label>
                 <Textarea
+                  id="menu-description"
                   value={menuDescription}
                   onChange={(e) => setMenuDescription(e.target.value)}
                   placeholder="看板メニューの説明を入力してください（100文字以内）"
@@ -122,8 +125,11 @@ export default function StoreSettingsPage() {
 
               {/* 写真アップロード */}
               <div className="space-y-2">
-                <Label>写真</Label>
-                <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-6 py-10 transition-colors hover:border-gray-400">
+                <Label htmlFor="photo">写真</Label>
+                <label
+                  htmlFor="photo"
+                  className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-6 py-10 transition-colors hover:border-gray-400"
+                >
                   <div className="text-center">
                     <Upload className="mx-auto size-8 text-gray-400" />
                     <p className="mt-2 text-sm text-gray-600">
@@ -133,7 +139,19 @@ export default function StoreSettingsPage() {
                       JPG, PNG（最大5MB）
                     </p>
                   </div>
-                </div>
+                  <input
+                    id="photo"
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const url = URL.createObjectURL(file)
+                      updateStore({ photo_url: url })
+                    }}
+                  />
+                </label>
               </div>
             </div>
 

@@ -76,6 +76,7 @@ export function useStore(storeIdParam: string) {
         genre: store?.genre,
         photo_url: store?.photo_url,
         description: store?.description,
+        menu_description: store?.menu_description,
       },
       is_active: false,
       created_at: new Date().toISOString(),

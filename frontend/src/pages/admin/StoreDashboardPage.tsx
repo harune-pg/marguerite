@@ -29,7 +29,7 @@ export default function StoreDashboardPage() {
 
   const activeCount = baseImages.filter((img) => img.is_active).length
   const generatingCount = baseImages.filter(
-    (img) => !img.image_url && !img.is_active,
+    (img) => !img.image_url && !img.is_active && img.status !== "failed",
   ).length
   const totalCount = baseImages.length
 
