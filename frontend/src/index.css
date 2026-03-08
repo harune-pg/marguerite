@@ -127,3 +127,29 @@
     @apply font-sans;
   }
 }
+
+/* ゲーム画面のマークアニメーション */
+@keyframes mark-pop {
+  0% {
+    opacity: 0;
+    scale: 0;
+  }
+  70% {
+    scale: 1.15;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes mark-fade {
+  0% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.8;
+  }
+}
