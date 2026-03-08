@@ -21,9 +21,16 @@ export default function RegisterPage() {
 
     setIsSubmitting(true)
 
-    const existingStores = JSON.parse(
-      localStorage.getItem("stores") || "[]",
-    )
+    let existingStores: { id: number | string }[] = []
+    const rawStores = localStorage.getItem("stores")
+    if (rawStores) {
+      try {
+        const parsed = JSON.parse(rawStores)
+        existingStores = Array.isArray(parsed) ? parsed : []
+      } catch {
+        existingStores = []
+      }
+    }
     const maxId = existingStores.reduce(
       (max: number, s: { id: number | string }) => {
         const numericId = Number(s.id)

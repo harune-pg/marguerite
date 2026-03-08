@@ -48,7 +48,8 @@ export default function StoreSettingsPage() {
       menu_description: menuDescription.trim() || undefined,
     })
     setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    const timer = setTimeout(() => setSaved(false), 2000)
+    return () => clearTimeout(timer)
   }
 
   return (
@@ -136,7 +137,7 @@ export default function StoreSettingsPage() {
                       クリックまたはドラッグ&ドロップ
                     </p>
                     <p className="mt-1 text-xs text-gray-400">
-                      JPG, PNG（最大5MB）
+                      JPG, PNG（最大1MB）
                     </p>
                   </div>
                   <input
@@ -147,6 +148,10 @@ export default function StoreSettingsPage() {
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
+                      if (file.size > 1024 * 1024) {
+                        alert("ファイルサイズは1MB以下にしてください")
+                        return
+                      }
                       const reader = new FileReader()
                       reader.onload = () => {
                         if (typeof reader.result === "string") {

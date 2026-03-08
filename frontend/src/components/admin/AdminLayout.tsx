@@ -14,8 +14,11 @@ export default function AdminLayout() {
 
   if (!store) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-400">読み込み中...</p>
+      <div className="flex h-screen flex-col items-center justify-center gap-3 bg-gray-50">
+        <p className="text-gray-500">店舗が見つかりません</p>
+        <a href="/admin/register" className="text-sm text-indigo-500 hover:underline">
+          新規登録はこちら
+        </a>
       </div>
     )
   }

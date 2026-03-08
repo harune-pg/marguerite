@@ -59,6 +59,7 @@ export default function ImageDetailModal({
               type="button"
               onClick={() => onOpenChange(false)}
               className="absolute top-4 left-4 flex size-10 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+              aria-label="閉じる"
             >
               <X className="size-5" />
             </button>
@@ -71,7 +72,9 @@ export default function ImageDetailModal({
               ベース画像 #{index}
             </h2>
             <div className="mt-2">
-              {image.is_active ? (
+              {image.status === "failed" ? (
+                <Badge className="bg-red-100 text-red-700">失敗</Badge>
+              ) : image.is_active ? (
                 <Badge className="bg-green-100 text-green-700">公開中</Badge>
               ) : (
                 <Badge className="bg-gray-100 text-gray-600">下書き</Badge>
@@ -124,7 +127,11 @@ export default function ImageDetailModal({
 
             {/* アクションボタン */}
             <div className="mt-auto pt-6">
-              {image.is_active ? (
+              {image.status === "failed" ? (
+                <Button variant="outline" className="w-full" disabled>
+                  生成に失敗しました
+                </Button>
+              ) : image.is_active ? (
                 <Button
                   variant="outline"
                   className="w-full"

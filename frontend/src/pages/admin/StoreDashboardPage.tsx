@@ -76,6 +76,7 @@ export default function StoreDashboardPage() {
                 )
               }}
               className="shrink-0 text-indigo-500 hover:text-indigo-700"
+              aria-label="バナーを閉じる"
             >
               <X className="size-4" />
             </button>

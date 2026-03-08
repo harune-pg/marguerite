@@ -5,15 +5,24 @@ import type { BaseImage, Store } from "@/types"
 function loadStores(): Store[] {
   const stored = localStorage.getItem("stores")
   if (stored) {
-    return JSON.parse(stored) as Store[]
+    try {
+      return JSON.parse(stored) as Store[]
+    } catch {
+      localStorage.removeItem("stores")
+    }
   }
   return mockData.stores as Store[]
 }
 
 function loadBaseImages(storeId: number): BaseImage[] {
-  const stored = localStorage.getItem(`baseImages_${storeId}`)
+  const key = `baseImages_${storeId}`
+  const stored = localStorage.getItem(key)
   if (stored) {
-    return JSON.parse(stored) as BaseImage[]
+    try {
+      return JSON.parse(stored) as BaseImage[]
+    } catch {
+      localStorage.removeItem(key)
+    }
   }
   return (mockData.baseImages as BaseImage[]).filter(
     (img) => img.store_id === storeId,
