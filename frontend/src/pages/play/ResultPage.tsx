@@ -11,7 +11,11 @@ export default function ResultPage() {
   const { storeId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const state = (location.state as { found: number; total: number; time: number }) ?? {
+  const state = (location.state as {
+    found: number
+    total: number
+    time: number
+  }) ?? {
     found: 0,
     total: 5,
     time: 70,

@@ -16,7 +16,7 @@ import type { Store } from "@/types"
 
 type SettingsContext = {
   store: Store
-  updateStore: (updates: Partial<Store>) => void
+  updateStore: (updates: Partial<Store> & { photoFile?: File }) => void
 }
 
 const GENRES = ["カフェ", "居酒屋", "ファミレス", "ラーメン", "その他"] as const
@@ -77,7 +77,10 @@ export default function StoreSettingsPage() {
               {/* ジャンル */}
               <div className="space-y-2">
                 <Label htmlFor="genre">ジャンル</Label>
-                <Select value={genre} onValueChange={(v) => setGenre((v as Store["genre"]) ?? "")}>
+                <Select
+                  value={genre}
+                  onValueChange={(v) => setGenre((v as Store["genre"]) ?? "")}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="選択してください" />
                   </SelectTrigger>
@@ -158,13 +161,7 @@ export default function StoreSettingsPage() {
                         e.currentTarget.value = ""
                         return
                       }
-                      const reader = new FileReader()
-                      reader.onload = () => {
-                        if (typeof reader.result === "string") {
-                          updateStore({ photo_url: reader.result })
-                        }
-                      }
-                      reader.readAsDataURL(file)
+                      updateStore({ photoFile: file })
                     }}
                   />
                 </label>

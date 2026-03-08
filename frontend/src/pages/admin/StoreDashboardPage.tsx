@@ -1,6 +1,7 @@
 import { Bookmark, Calendar, QrCode, Sparkles, X } from "lucide-react"
 import { useState } from "react"
 import { useOutletContext, useSearchParams } from "react-router-dom"
+import { resolveImageUrl } from "@/api/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { BaseImage, Store } from "@/types"
@@ -11,8 +12,8 @@ import QrCodeModal from "./QrCodeModal"
 type DashboardContext = {
   store: Store
   baseImages: BaseImage[]
-  toggleImageActive: (imageId: string) => void
-  addGeneratingImage: () => string
+  toggleImageActive: (imageId: string) => Promise<void>
+  addGeneratingImage: () => Promise<string>
 }
 
 export default function StoreDashboardPage() {
@@ -59,7 +60,8 @@ export default function StoreDashboardPage() {
             <div className="flex items-center gap-2.5">
               <Bookmark className="size-[18px] shrink-0 text-indigo-500" />
               <span className="text-[13px] font-medium leading-snug text-indigo-800">
-                このページをブックマークしてください — 管理画面のURLは固定です。いつでもここからアクセスできます。
+                このページをブックマークしてください —
+                管理画面のURLは固定です。いつでもここからアクセスできます。
               </span>
             </div>
             <button
@@ -86,9 +88,7 @@ export default function StoreDashboardPage() {
         <div className="mb-6 flex items-center gap-6">
           <div className="text-sm text-gray-600">
             全画像{" "}
-            <span className="font-semibold text-gray-900">
-              {totalCount}枚
-            </span>
+            <span className="font-semibold text-gray-900">{totalCount}枚</span>
           </div>
           <div className="text-sm text-gray-600">
             公開中{" "}
@@ -138,11 +138,7 @@ export default function StoreDashboardPage() {
       </div>
 
       {/* モーダル群 */}
-      <QrCodeModal
-        open={qrOpen}
-        onOpenChange={setQrOpen}
-        storeId={store.id}
-      />
+      <QrCodeModal open={qrOpen} onOpenChange={setQrOpen} storeId={store.id} />
       <GenerateConfirmModal
         open={generateOpen}
         onOpenChange={setGenerateOpen}
@@ -154,9 +150,7 @@ export default function StoreDashboardPage() {
           open={!!selectedImageId}
           onOpenChange={(open) => !open && setSelectedImageId(null)}
           image={selectedImage}
-          index={
-            baseImages.findIndex((img) => img.id === selectedImageId) + 1
-          }
+          index={baseImages.findIndex((img) => img.id === selectedImageId) + 1}
           onToggleActive={() => toggleImageActive(selectedImage.id)}
         />
       )}
@@ -221,7 +215,7 @@ function ImageCard({
           </div>
         ) : image.image_url ? (
           <img
-            src={image.image_url}
+            src={resolveImageUrl(image.image_url)}
             alt={`ベース画像 #${index}`}
             className="h-full w-full object-cover"
           />

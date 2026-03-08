@@ -1,22 +1,8 @@
+import { useGesture } from "@use-gesture/react"
+import { ArrowLeft, Check, Timer, X, ZoomIn } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { useGesture } from "@use-gesture/react"
-import { ArrowLeft, Timer, Check, X, ZoomIn } from "lucide-react"
-import type { Difference } from "@/types"
-
-// デモ用のゲームデータ
-const MOCK_GAME = {
-  store_name: "カフェまるまる",
-  original_image_url: "/demo/game-original.png",
-  modified_image_url: "/demo/game-modified.png",
-  differences: [
-    { cx: 32.6, cy: 14.6, radius: 3.9 },
-    { cx: 89.8, cy: 39.1, radius: 4.3 },
-    { cx: 42.3, cy: 43.9, radius: 3.6 },
-    { cx: 31.3, cy: 73.2, radius: 4.3 },
-    { cx: 71.6, cy: 73.2, radius: 4.7 },
-  ] satisfies Difference[],
-}
+import { type PlayResponse, play, resolveImageUrl } from "@/api/client"
 
 const GAME_DURATION = 70 // 1分10秒
 
@@ -59,7 +45,11 @@ function WrongMark({
   cx,
   cy,
   visible,
-}: { cx: number; cy: number; visible: boolean }) {
+}: {
+  cx: number
+  cy: number
+  visible: boolean
+}) {
   return (
     <div
       className={
@@ -168,6 +158,8 @@ export default function GamePage() {
   const navigate = useNavigate()
   const { storeId } = useParams<{ storeId: string }>()
 
+  const [gameData, setGameData] = useState<PlayResponse | null>(null)
+  const [error, setError] = useState(false)
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION)
   const [found, setFound] = useState<number[]>([])
   const [marks, setMarks] = useState<Mark[]>([])
@@ -178,12 +170,20 @@ export default function GamePage() {
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
 
-  const differences = MOCK_GAME.differences
+  // ゲームデータ取得
+  useEffect(() => {
+    if (!storeId) return
+    play(Number(storeId))
+      .then(setGameData)
+      .catch(() => setError(true))
+  }, [storeId])
+
+  const differences = gameData?.differences ?? []
   const totalDiffs = differences.length
 
   // --- タイマー ---
   useEffect(() => {
-    if (gameOverRef.current) return
+    if (!gameData || gameOverRef.current) return
     if (timeLeft <= 0) {
       gameOverRef.current = true
       navigate(`/play/${storeId}/result`, {
@@ -193,11 +193,11 @@ export default function GamePage() {
     }
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000)
     return () => clearInterval(timer)
-  }, [timeLeft, navigate, storeId, found.length, totalDiffs])
+  }, [timeLeft, navigate, storeId, found.length, totalDiffs, gameData])
 
   // --- 全問正解 ---
   useEffect(() => {
-    if (found.length === totalDiffs && !gameOverRef.current) {
+    if (found.length === totalDiffs && totalDiffs > 0 && !gameOverRef.current) {
       gameOverRef.current = true
       const elapsed = GAME_DURATION - timeLeft
       const id = setTimeout(() => {
@@ -275,10 +275,10 @@ export default function GamePage() {
   // --- ピンチズーム＆パン（両画像で共有） ---
   const bindGesture = useGesture(
     {
-      onPinch: ({ offset: [s] }) => {
+      onPinch: ({ offset: [s] }: { offset: [number] }) => {
         setScale(s)
       },
-      onDrag: ({ offset: [x, y] }) => {
+      onDrag: ({ offset: [x, y] }: { offset: [number, number] }) => {
         if (scale > 1) {
           setPosition({ x, y })
         }
@@ -290,8 +290,32 @@ export default function GamePage() {
     },
   )
 
-  const progressPercent =
-    totalDiffs > 0 ? (found.length / totalDiffs) * 100 : 0
+  // ローディング
+  if (!gameData && !error) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-white">
+        <div className="size-8 animate-spin rounded-full border-2 border-gray-200 border-t-gray-600" />
+      </div>
+    )
+  }
+
+  // エラー
+  if (error || !gameData) {
+    return (
+      <div className="h-dvh flex flex-col items-center justify-center bg-white gap-4">
+        <p className="text-gray-500">ゲームデータを取得できませんでした</p>
+        <button
+          type="button"
+          onClick={() => navigate(`/play/${storeId}`)}
+          className="text-sm text-amber-500 hover:underline"
+        >
+          戻る
+        </button>
+      </div>
+    )
+  }
+
+  const progressPercent = totalDiffs > 0 ? (found.length / totalDiffs) * 100 : 0
 
   return (
     <div className="h-dvh bg-white flex flex-col overflow-hidden px-2.5">
@@ -307,7 +331,7 @@ export default function GamePage() {
               <ArrowLeft size={20} />
             </button>
             <span className="text-[15px] font-semibold text-gray-900">
-              {MOCK_GAME.store_name}
+              {gameData.store_name}
             </span>
           </div>
           <div className="flex items-center gap-1 bg-orange-50 rounded-xl px-2.5 py-1">
@@ -336,7 +360,7 @@ export default function GamePage() {
       {/* 画像エリア */}
       <div className="flex flex-col gap-1.5">
         <GameImage
-          src={MOCK_GAME.original_image_url}
+          src={resolveImageUrl(gameData.original_image_url)}
           alt="元画像"
           marks={marks}
           onTap={handleTap}
@@ -345,7 +369,7 @@ export default function GamePage() {
           bindGesture={bindGesture}
         />
         <GameImage
-          src={MOCK_GAME.modified_image_url}
+          src={resolveImageUrl(gameData.modified_image_url)}
           alt="変更画像"
           marks={marks}
           onTap={handleTap}

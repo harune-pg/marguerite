@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react"
+import { resolveImageUrl } from "@/api/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -40,7 +41,7 @@ export default function GenerateConfirmModal({
           <div className="size-[180px] shrink-0 overflow-hidden rounded-lg bg-gray-100">
             {store.photo_url ? (
               <img
-                src={store.photo_url}
+                src={resolveImageUrl(store.photo_url ?? "")}
                 alt="店舗写真"
                 className="h-full w-full object-cover"
               />

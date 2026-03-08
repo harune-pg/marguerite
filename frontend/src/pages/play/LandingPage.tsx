@@ -1,9 +1,7 @@
 import { Coffee, Play } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-
-const MOCK_STORE = {
-  store_name: "カフェまるまる",
-}
+import { getStore, type StoreResponse } from "@/api/client"
 
 const RULES = [
   "2つの絵のちがいを見つけてタップ!",
@@ -14,6 +12,31 @@ const RULES = [
 export default function LandingPage() {
   const { storeId } = useParams()
   const navigate = useNavigate()
+  const [store, setStore] = useState<StoreResponse | null>(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    if (!storeId) return
+    getStore(Number(storeId))
+      .then(setStore)
+      .catch(() => setError(true))
+  }, [storeId])
+
+  if (error) {
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-white px-6 py-8 gap-4">
+        <p className="text-gray-500">店舗が見つかりません</p>
+      </div>
+    )
+  }
+
+  if (!store) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-white">
+        <div className="size-8 animate-spin rounded-full border-2 border-gray-200 border-t-gray-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center bg-white px-6 py-8 gap-8">
@@ -24,7 +47,7 @@ export default function LandingPage() {
 
       {/* Store Name */}
       <h1 className="text-[28px] font-bold text-gray-900 text-center">
-        {MOCK_STORE.store_name}
+        {store.name}
       </h1>
 
       {/* Rules */}

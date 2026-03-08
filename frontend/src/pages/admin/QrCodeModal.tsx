@@ -60,10 +60,7 @@ export default function QrCodeModal({
 
         <div className="flex flex-col items-center gap-4 py-4">
           {/* QRコード */}
-          <div
-            id="qr-code-svg"
-            className="rounded-xl bg-gray-50 p-4"
-          >
+          <div id="qr-code-svg" className="rounded-xl bg-gray-50 p-4">
             <QRCodeSVG value={playUrl} size={200} />
           </div>
 

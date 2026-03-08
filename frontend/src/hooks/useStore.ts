@@ -1,102 +1,145 @@
-import { useCallback, useEffect, useState } from "react"
-import mockData from "@/data/mock.json"
+import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  updateStore as apiUpdateStore,
+  type BaseImageResponse,
+  generateBaseImage,
+  getStore,
+  listBaseImages,
+  type StoreResponse,
+  updateBaseImage,
+} from "@/api/client"
 import type { BaseImage, Store } from "@/types"
 
-function loadStores(): Store[] {
-  const stored = localStorage.getItem("stores")
-  if (stored) {
-    try {
-      return JSON.parse(stored) as Store[]
-    } catch {
-      localStorage.removeItem("stores")
-    }
+/** BE の StoreResponse → FE の Store 型に変換 */
+function toStore(s: StoreResponse): Store {
+  return {
+    id: s.id,
+    name: s.name,
+    genre: (s.genre as Store["genre"]) ?? undefined,
+    photo_url: s.photo_url ?? undefined,
+    menu_description: s.menu_description ?? undefined,
+    description: s.description ?? undefined,
+    created_at: s.created_at,
+    updated_at: s.updated_at,
   }
-  return mockData.stores as Store[]
 }
 
-function loadBaseImages(storeId: number): BaseImage[] {
-  const key = `baseImages_${storeId}`
-  const stored = localStorage.getItem(key)
-  if (stored) {
-    try {
-      return JSON.parse(stored) as BaseImage[]
-    } catch {
-      localStorage.removeItem(key)
-    }
+/** BE の BaseImageResponse → FE の BaseImage 型に変換 */
+function toBaseImage(b: BaseImageResponse): BaseImage {
+  return {
+    id: b.base_image_id,
+    store_id: b.store_id,
+    image_url: b.image_url,
+    segments: [], // FE側では使わない（ゲームデータはplay APIから取得）
+    generation_input: {
+      store_name: "",
+      ...((b.generation_input as Record<string, string>) ?? {}),
+    },
+    is_active: b.is_active,
+    created_at: b.created_at,
+    status: b.image_url ? "completed" : "generating",
   }
-  return (mockData.baseImages as BaseImage[]).filter(
-    (img) => img.store_id === storeId,
-  )
 }
 
 export function useStore(storeIdParam: string) {
   const storeId = Number(storeIdParam)
   const [store, setStore] = useState<Store | null>(null)
   const [baseImages, setBaseImages] = useState<BaseImage[]>([])
+  const [loading, setLoading] = useState(true)
 
+  // データ取得
   useEffect(() => {
-    const stores = loadStores()
-    const found = stores.find((s) => s.id === storeId)
-    setStore(found ?? null)
-    setBaseImages(loadBaseImages(storeId))
+    let cancelled = false
+    setLoading(true)
+
+    Promise.all([getStore(storeId), listBaseImages(storeId)])
+      .then(([storeData, imagesData]) => {
+        if (cancelled) return
+        setStore(toStore(storeData))
+        setBaseImages(imagesData.map(toBaseImage))
+      })
+      .catch(() => {
+        if (cancelled) return
+        setStore(null)
+        setBaseImages([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [storeId])
 
-  const updateStore = useCallback(
-    (updates: Partial<Store>) => {
-      const stores = loadStores()
-      const idx = stores.findIndex((s) => Number(s.id) === storeId)
-      if (idx >= 0) {
-        stores[idx] = {
-          ...stores[idx],
-          ...updates,
-          updated_at: new Date().toISOString(),
-        }
-        localStorage.setItem("stores", JSON.stringify(stores))
-        setStore(stores[idx])
-      }
+  // 生成中の画像があれば5秒ごとにポーリング
+  const baseImagesRef = useRef(baseImages)
+  baseImagesRef.current = baseImages
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: baseImages.length triggers polling start after addGeneratingImage
+  useEffect(() => {
+    if (!storeIdParam) return
+    const hasGenerating = baseImagesRef.current.some(
+      (img) => img.status === "generating",
+    )
+    if (!hasGenerating) return
+
+    const id = setInterval(() => {
+      listBaseImages(storeId)
+        .then((data) => {
+          const updated = data.map(toBaseImage)
+          setBaseImages(updated)
+          // 生成中がなくなったらポーリング停止
+          if (!updated.some((img) => img.status === "generating")) {
+            clearInterval(id)
+          }
+        })
+        .catch(() => {})
+    }, 5000)
+
+    return () => clearInterval(id)
+  }, [storeId, storeIdParam, baseImages.length])
+
+  const updateStoreFn = useCallback(
+    async (updates: Partial<Store> & { photoFile?: File }) => {
+      const { photoFile, ...rest } = updates
+      const res = await apiUpdateStore(storeId, {
+        name: rest.name,
+        genre: rest.genre,
+        menu_description: rest.menu_description,
+        description: rest.description,
+        photo: photoFile,
+      })
+      setStore(toStore(res))
     },
     [storeId],
   )
 
   const toggleImageActive = useCallback(
-    (imageId: string) => {
-      setBaseImages((prev) => {
-        const updated = prev.map((img) =>
-          img.id === imageId ? { ...img, is_active: !img.is_active } : img,
-        )
-        localStorage.setItem(
-          `baseImages_${storeId}`,
-          JSON.stringify(updated),
-        )
-        return updated
-      })
+    async (imageId: string) => {
+      const current = baseImages.find((img) => img.id === imageId)
+      if (!current) return
+      const res = await updateBaseImage(storeId, imageId, !current.is_active)
+      setBaseImages((prev) =>
+        prev.map((img) => (img.id === imageId ? toBaseImage(res) : img)),
+      )
     },
-    [storeId],
+    [storeId, baseImages],
   )
 
-  const addGeneratingImage = useCallback(() => {
-    const newImage: BaseImage = {
-      id: `base_img_${Date.now()}`,
-      store_id: storeId,
-      image_url: "",
-      segments: [],
-      generation_input: {
-        store_name: store?.name ?? "",
-        genre: store?.genre,
-        photo_url: store?.photo_url,
-        description: store?.description,
-        menu_description: store?.menu_description,
-      },
-      is_active: false,
-      created_at: new Date().toISOString(),
-    }
-    setBaseImages((prev) => {
-      const updated = [...prev, newImage]
-      localStorage.setItem(`baseImages_${storeId}`, JSON.stringify(updated))
-      return updated
-    })
+  const addGeneratingImage = useCallback(async () => {
+    const res = await generateBaseImage(storeId)
+    const newImage = toBaseImage(res)
+    setBaseImages((prev) => [...prev, newImage])
     return newImage.id
-  }, [storeId, store])
+  }, [storeId])
 
-  return { store, baseImages, updateStore, toggleImageActive, addGeneratingImage }
+  return {
+    store,
+    baseImages,
+    loading,
+    updateStore: updateStoreFn,
+    toggleImageActive,
+    addGeneratingImage,
+  }
 }
