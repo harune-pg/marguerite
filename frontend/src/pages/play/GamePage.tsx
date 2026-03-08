@@ -320,7 +320,7 @@ export default function GamePage() {
   return (
     <div className="h-dvh bg-white flex flex-col overflow-hidden px-2.5">
       {/* 上部エリア: ヘッダー + プログレスバー */}
-      <div className="flex-1 flex flex-col justify-end gap-1 pb-1.5">
+      <div className="flex-1 flex flex-col justify-end gap-1 pb-3">
         <div className="flex items-center justify-between px-1.5 py-1.5">
           <div className="flex items-center gap-2">
             <button

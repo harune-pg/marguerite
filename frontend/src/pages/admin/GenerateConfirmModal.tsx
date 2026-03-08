@@ -26,7 +26,7 @@ export default function GenerateConfirmModal({
     { label: "ジャンル", value: store.genre ?? "未設定" },
     { label: "店名", value: store.name },
     { label: "紹介文", value: store.description ?? "未設定" },
-    { label: "看板メニュー", value: store.menu_description ?? "未設定" },
+    { label: "メニュー説明", value: store.menu_description ?? "未設定" },
   ]
 
   return (

@@ -54,7 +54,7 @@ export default function QrCodeModal({
         <DialogHeader>
           <DialogTitle>QRコード</DialogTitle>
           <DialogDescription>
-            このQRコードをお客様に見せて、間違い探しを楽しんでもらいましょう
+            QRコードを保存して、テーブルに設置するなどしてお客様に読み取ってもらいましょう
           </DialogDescription>
         </DialogHeader>
 
@@ -72,7 +72,7 @@ export default function QrCodeModal({
 
           {/* ダウンロードボタン */}
           <Button
-            className="w-full bg-indigo-500 hover:bg-indigo-600"
+            className="h-11 w-full bg-indigo-500 hover:bg-indigo-600"
             onClick={handleDownload}
           >
             <Download className="mr-2 size-4" />

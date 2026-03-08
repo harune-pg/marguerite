@@ -27,7 +27,7 @@ export default function Sidebar({ storeName, storeId }: SidebarProps) {
       {/* ロゴ */}
       <div className="flex h-16 items-center gap-2 px-5">
         <span className="font-['Bricolage_Grotesque'] text-lg font-bold text-indigo-500">
-          🔍 まちがいさがし
+          🔍 まちあいさがし
         </span>
       </div>
 

@@ -13,11 +13,13 @@ from sqlmodel import Session, select
 from app.database import create_db_and_tables, engine
 from app.models import BaseImage, Store
 
-PIPELINE_OUTPUT = Path.home() / "marguerite_spec" / "image-pipeline" / "output"
-STATIC_IMAGES = Path(__file__).resolve().parent / "static" / "images"
+BASE_DIR = Path(__file__).resolve().parent
+SEEDS_DIR = BASE_DIR / "seeds"
+PIPELINE_OUTPUT = SEEDS_DIR
+STATIC_IMAGES = BASE_DIR / "static" / "images"
 
-# image-pipeline/seeds/stores.json から店舗情報を読む
-SEEDS_PATH = Path.home() / "marguerite_spec" / "image-pipeline" / "seeds" / "stores.json"
+# seeds/stores.json から店舗情報を読む
+SEEDS_PATH = SEEDS_DIR / "stores.json"
 
 # 投入対象の store index (pipeline の store_N に対応)
 SEED_STORES = [1]

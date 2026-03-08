@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { Toaster } from "@/components/ui/sonner"
 import AdminLayout from "@/components/admin/AdminLayout"
 import RegisterPage from "@/pages/admin/RegisterPage"
 import StoreDashboardPage from "@/pages/admin/StoreDashboardPage"
@@ -27,6 +28,7 @@ function App() {
         <Route path="/play/:storeId/result" element={<ResultPage />} />
       </Routes>
     </BrowserRouter>
+    <Toaster position="top-right" richColors />
   )
 }
 

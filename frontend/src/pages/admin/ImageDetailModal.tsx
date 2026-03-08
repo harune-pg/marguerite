@@ -31,7 +31,7 @@ export default function ImageDetailModal({
       value: image.generation_input.description ?? "未設定",
     },
     {
-      label: "看板メニュー",
+      label: "メニュー説明",
       value: image.generation_input.menu_description ?? "未設定",
     },
   ]

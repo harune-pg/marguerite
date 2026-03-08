@@ -1,6 +1,7 @@
 import { Upload } from "lucide-react"
-import { type FormEvent, useEffect, useRef, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,7 +17,7 @@ import type { Store } from "@/types"
 
 type SettingsContext = {
   store: Store
-  updateStore: (updates: Partial<Store> & { photoFile?: File }) => void
+  updateStore: (updates: Partial<Store> & { photoFile?: File }) => Promise<void>
 }
 
 const GENRES = ["カフェ", "居酒屋", "ファミレス", "ラーメン", "その他"] as const
@@ -28,12 +29,14 @@ export default function StoreSettingsPage() {
   const [genre, setGenre] = useState<Store["genre"] | "">("")
   const [description, setDescription] = useState("")
   const [menuDescription, setMenuDescription] = useState("")
-  const [saved, setSaved] = useState(false)
-  const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
   useEffect(() => {
-    return () => clearTimeout(savedTimerRef.current)
-  }, [])
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
+    }
+  }, [photoPreview])
 
   useEffect(() => {
     if (store) {
@@ -44,17 +47,19 @@ export default function StoreSettingsPage() {
     }
   }, [store])
 
-  const handleSave = (e: FormEvent) => {
+  const handleSave = async (e: FormEvent) => {
     e.preventDefault()
-    updateStore({
-      name: name.trim(),
-      genre: genre || undefined,
-      description: description.trim() || undefined,
-      menu_description: menuDescription.trim() || undefined,
-    })
-    setSaved(true)
-    clearTimeout(savedTimerRef.current)
-    savedTimerRef.current = setTimeout(() => setSaved(false), 2000)
+    try {
+      await updateStore({
+        name: name.trim(),
+        genre: genre || undefined,
+        description: description.trim() || undefined,
+        menu_description: menuDescription.trim() || undefined,
+      })
+      toast.success("保存しました")
+    } catch {
+      toast.error("保存に失敗しました")
+    }
   }
 
   return (
@@ -135,36 +140,66 @@ export default function StoreSettingsPage() {
               {/* 写真アップロード */}
               <div className="space-y-2">
                 <Label htmlFor="photo">写真</Label>
-                <label
-                  htmlFor="photo"
-                  className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-6 py-10 transition-colors hover:border-gray-400"
-                >
-                  <div className="text-center">
-                    <Upload className="mx-auto size-8 text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-600">
-                      クリックして選択
-                    </p>
-                    <p className="mt-1 text-xs text-gray-400">
-                      JPG, PNG（最大1MB）
-                    </p>
+                {photoPreview ? (
+                  <div className="relative rounded-lg border bg-gray-50 p-3">
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={photoPreview}
+                        alt="プレビュー"
+                        className="max-h-32 rounded object-contain"
+                      />
+                      <div className="flex min-w-0 flex-1 flex-col gap-1 pt-1">
+                        <p className="truncate text-sm text-gray-700">
+                          {photoFile?.name}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            URL.revokeObjectURL(photoPreview)
+                            setPhotoFile(null)
+                            setPhotoPreview(null)
+                          }}
+                          className="self-start text-xs text-red-500 hover:text-red-700"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <input
-                    id="photo"
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    className="sr-only"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (!file) return
-                      if (file.size > 1024 * 1024) {
-                        alert("ファイルサイズは1MB以下にしてください")
-                        e.currentTarget.value = ""
-                        return
-                      }
-                      updateStore({ photoFile: file })
-                    }}
-                  />
-                </label>
+                ) : (
+                  <label
+                    htmlFor="photo"
+                    className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-6 py-10 transition-colors hover:border-gray-400"
+                  >
+                    <div className="text-center">
+                      <Upload className="mx-auto size-8 text-gray-400" />
+                      <p className="mt-2 text-sm text-gray-600">
+                        クリックして選択
+                      </p>
+                      <p className="mt-1 text-xs text-gray-400">
+                        JPG, PNG（最大1MB）
+                      </p>
+                    </div>
+                    <input
+                      id="photo"
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        if (file.size > 1024 * 1024) {
+                          alert("ファイルサイズは1MB以下にしてください")
+                          e.currentTarget.value = ""
+                          return
+                        }
+                        setPhotoFile(file)
+                        setPhotoPreview(URL.createObjectURL(file))
+                        updateStore({ photoFile: file })
+                      }}
+                    />
+                  </label>
+                )}
               </div>
             </div>
 
@@ -174,7 +209,7 @@ export default function StoreSettingsPage() {
                 type="submit"
                 className="bg-indigo-500 hover:bg-indigo-600"
               >
-                {saved ? "保存しました" : "保存する"}
+                保存する
               </Button>
             </div>
           </div>

@@ -1,0 +1,86 @@
+{
+  "original": "base_openai.png",
+  "modified": "modified.png",
+  "image_size": {
+    "w": 1536,
+    "h": 1024
+  },
+  "count": 3,
+  "diffs": [
+    {
+      "id": 1,
+      "type": "color_change",
+      "bbox": {
+        "x": 1179,
+        "y": 731,
+        "w": 234,
+        "h": 168
+      },
+      "object_name": "cup",
+      "part_label": "湯飲み",
+      "original_color": [
+        57,
+        160,
+        210
+      ],
+      "new_color": [
+        255,
+        60,
+        60
+      ],
+      "color_name": "red",
+      "diff_path": "diff_1_color.png",
+      "mask_path": "masks_ff/part_036.png"
+    },
+    {
+      "id": 2,
+      "type": "color_change",
+      "bbox": {
+        "x": 1468,
+        "y": 0,
+        "w": 41,
+        "h": 444
+      },
+      "object_name": "wall",
+      "part_label": "壁の柱",
+      "original_color": [
+        157,
+        95,
+        31
+      ],
+      "new_color": [
+        60,
+        120,
+        255
+      ],
+      "color_name": "blue",
+      "diff_path": "diff_2_color.png",
+      "mask_path": "masks_ff/part_005.png"
+    },
+    {
+      "id": 3,
+      "type": "color_change",
+      "bbox": {
+        "x": 212,
+        "y": 533,
+        "w": 116,
+        "h": 137
+      },
+      "object_name": "beer",
+      "part_label": "ビールジョッキ",
+      "original_color": [
+        245,
+        188,
+        127
+      ],
+      "new_color": [
+        60,
+        120,
+        255
+      ],
+      "color_name": "blue",
+      "diff_path": "diff_3_color.png",
+      "mask_path": "masks_ff/part_027.png"
+    }
+  ]
+}

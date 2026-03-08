@@ -107,10 +107,10 @@ export default function StoreDashboardPage() {
 
           {/* 生成ボタン */}
           <Button
-            className="ml-auto bg-gradient-to-r from-indigo-400 via-indigo-500 to-indigo-600 text-white shadow-md hover:from-indigo-500 hover:via-indigo-600 hover:to-indigo-700"
+            className="ml-auto h-11 px-6 text-base bg-gradient-to-r from-indigo-400 via-indigo-500 to-indigo-600 text-white shadow-md hover:from-indigo-500 hover:via-indigo-600 hover:to-indigo-700"
             onClick={() => setGenerateOpen(true)}
           >
-            <Sparkles className="mr-2 size-4" />
+            <Sparkles className="mr-2 size-5" />
             生成する
           </Button>
         </div>

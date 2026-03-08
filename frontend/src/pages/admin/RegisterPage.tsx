@@ -33,7 +33,7 @@ export default function RegisterPage() {
       <div className="flex flex-col items-center gap-6">
         {/* ロゴ */}
         <span className="font-['Bricolage_Grotesque'] text-[22px] font-bold text-indigo-500">
-          まちがいさがし
+          まちあいさがし
         </span>
 
         {/* カード */}
