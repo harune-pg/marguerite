@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
-  DialogContent,
   DialogOverlay,
   DialogPortal,
 } from "@/components/ui/dialog"
@@ -36,7 +35,7 @@ export default function ImageDetailModal({
     },
     {
       label: "看板メニュー",
-      value: image.generation_input.photo_url ? "あり" : "未設定",
+      value: image.generation_input.menu_description ?? "未設定",
     },
   ]
 
@@ -44,10 +43,8 @@ export default function ImageDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay />
-        <DialogContent
-          showCloseButton={false}
-          className="flex h-[780px] max-h-[90vh] w-[1160px] max-w-[95vw] gap-0 overflow-hidden p-0"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="flex h-[780px] max-h-[90vh] w-[1160px] max-w-[95vw] overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-foreground/10">
           {/* 左：画像パネル */}
           <div className="relative flex flex-1 items-center justify-center bg-neutral-900">
             {image.image_url ? (
@@ -69,7 +66,7 @@ export default function ImageDetailModal({
           </div>
 
           {/* 右：情報パネル */}
-          <div className="flex w-[380px] flex-col border-l bg-white p-6">
+          <div className="flex w-[410px] flex-col border-l bg-white p-6">
             {/* タイトル & バッジ */}
             <h2 className="text-lg font-semibold text-gray-900">
               ベース画像 #{index}
@@ -85,7 +82,13 @@ export default function ImageDetailModal({
             {/* 日付 */}
             <div className="mt-3 flex items-center gap-1 text-sm text-gray-400">
               <Calendar className="size-4" />
-              {new Date(image.created_at).toLocaleDateString("ja-JP")}
+              {new Date(image.created_at).toLocaleString("ja-JP", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </div>
 
             {/* 生成時の情報 */}
@@ -97,7 +100,7 @@ export default function ImageDetailModal({
                 {infoRows.map((row, i) => (
                   <div
                     key={row.label}
-                    className={`flex px-4 py-3 text-sm ${i < infoRows.length - 1 ? "border-b" : ""}`}
+                    className={`flex px-4 py-3 text-sm ${i < infoRows.length - 1 ? "border-b" : image.generation_input.photo_url ? "border-b" : ""}`}
                   >
                     <span className="w-24 shrink-0 font-medium text-gray-500">
                       {row.label}
@@ -105,6 +108,18 @@ export default function ImageDetailModal({
                     <span className="text-gray-900">{row.value}</span>
                   </div>
                 ))}
+                {image.generation_input.photo_url && (
+                  <div className="flex px-4 py-3 text-sm">
+                    <span className="w-24 shrink-0 font-medium text-gray-500">
+                      写真
+                    </span>
+                    <img
+                      src={image.generation_input.photo_url}
+                      alt="店舗写真"
+                      className="h-16 w-16 rounded object-cover"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -129,7 +144,8 @@ export default function ImageDetailModal({
               )}
             </div>
           </div>
-        </DialogContent>
+          </div>
+        </div>
       </DialogPortal>
     </Dialog>
   )

@@ -13,7 +13,7 @@ import {
 type QrCodeModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  storeId: string
+  storeId: number
 }
 
 export default function QrCodeModal({
@@ -50,7 +50,7 @@ export default function QrCodeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="p-6 sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>QRコード</DialogTitle>
           <DialogDescription>

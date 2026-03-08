@@ -21,7 +21,17 @@ export default function RegisterPage() {
 
     setIsSubmitting(true)
 
-    const storeId = `store_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const existingStores = JSON.parse(
+      localStorage.getItem("stores") || "[]",
+    )
+    const maxId = existingStores.reduce(
+      (max: number, s: { id: number | string }) => {
+        const id = typeof s.id === "number" ? s.id : 0
+        return Math.max(max, id)
+      },
+      0,
+    )
+    const storeId = maxId + 1
 
     const newStore = {
       id: storeId,
@@ -30,13 +40,10 @@ export default function RegisterPage() {
       updated_at: new Date().toISOString(),
     }
 
-    const existingStores = JSON.parse(
-      localStorage.getItem("stores") || "[]",
-    )
     existingStores.push(newStore)
     localStorage.setItem("stores", JSON.stringify(existingStores))
 
-    navigate(`/admin/stores/${storeId}`)
+    navigate(`/admin/stores/${storeId}?registered=true`)
   }
 
   return (

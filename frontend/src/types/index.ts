@@ -4,7 +4,7 @@
  * 店舗情報
  */
 export type Store = {
-  id: string // UUID
+  id: number
   name: string
   genre?: "カフェ" | "居酒屋" | "ファミレス" | "ラーメン" | "その他"
   photo_url?: string
@@ -18,11 +18,12 @@ export type Store = {
  * ベース画像（間違い探し用の元画像）
  */
 export type BaseImage = {
-  id: string // UUID
-  store_id: string
+  id: string
+  store_id: number
   image_url: string
   segments: Segment[]
   generation_input: GenerationInput
+  status?: "generating" | "completed" | "failed"
   is_active: boolean
   created_at: string
 }
@@ -46,6 +47,7 @@ export type GenerationInput = {
   store_name: string
   genre?: string
   photo_url?: string
+  menu_description?: string
   description?: string
 }
 
@@ -84,7 +86,7 @@ export type CreateStoreRequest = {
  * 店舗登録レスポンス
  */
 export type CreateStoreResponse = {
-  store_id: string
+  store_id: number
   name: string
 }
 

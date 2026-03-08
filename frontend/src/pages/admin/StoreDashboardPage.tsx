@@ -1,6 +1,6 @@
-import { Calendar, QrCode, Sparkles } from "lucide-react"
+import { Bookmark, Calendar, QrCode, Sparkles, X } from "lucide-react"
 import { useState } from "react"
-import { useOutletContext } from "react-router-dom"
+import { useOutletContext, useSearchParams } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { BaseImage, Store } from "@/types"
@@ -18,6 +18,10 @@ type DashboardContext = {
 export default function StoreDashboardPage() {
   const { store, baseImages, toggleImageActive, addGeneratingImage } =
     useOutletContext<DashboardContext>()
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const showBanner = searchParams.has("registered") && !bannerDismissed
 
   const [qrOpen, setQrOpen] = useState(false)
   const [generateOpen, setGenerateOpen] = useState(false)
@@ -49,6 +53,28 @@ export default function StoreDashboardPage() {
 
       {/* コンテンツ */}
       <div className="p-8">
+        {/* ブックマークバナー */}
+        {showBanner && (
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-lg bg-indigo-50 px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <Bookmark className="size-[18px] shrink-0 text-indigo-500" />
+              <span className="text-[13px] font-medium leading-snug text-indigo-800">
+                このページをブックマークしてください — 管理画面のURLは固定です。いつでもここからアクセスできます。
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setBannerDismissed(true)
+                searchParams.delete("registered")
+                setSearchParams(searchParams, { replace: true })
+              }}
+              className="shrink-0 text-indigo-500 hover:text-indigo-700"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        )}
         {/* 統計行 */}
         <div className="mb-6 flex items-center gap-6">
           <div className="text-sm text-gray-600">
@@ -140,12 +166,14 @@ function ImageCard({
   index: number
   onClick: () => void
 }) {
-  const isGenerating = !image.image_url && !image.is_active
-  const status = isGenerating
-    ? "generating"
-    : image.is_active
-      ? "active"
-      : "draft"
+  const status =
+    image.status === "failed"
+      ? "failed"
+      : image.status === "generating" || (!image.image_url && !image.is_active)
+        ? "generating"
+        : image.is_active
+          ? "active"
+          : "draft"
 
   const badgeConfig = {
     active: {
@@ -160,6 +188,10 @@ function ImageCard({
       label: "生成中",
       className: "bg-indigo-100 text-indigo-700",
     },
+    failed: {
+      label: "失敗",
+      className: "bg-red-100 text-red-700",
+    },
   }
 
   const badge = badgeConfig[status]
@@ -172,9 +204,13 @@ function ImageCard({
     >
       {/* 画像エリア */}
       <div className="relative aspect-[4/3] bg-gray-100">
-        {isGenerating ? (
+        {status === "generating" ? (
           <div className="flex h-full items-center justify-center">
             <div className="size-8 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+          </div>
+        ) : status === "failed" ? (
+          <div className="flex h-full items-center justify-center text-red-400">
+            生成に失敗しました
           </div>
         ) : image.image_url ? (
           <img

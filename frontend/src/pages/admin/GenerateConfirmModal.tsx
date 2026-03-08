@@ -30,7 +30,7 @@ export default function GenerateConfirmModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[640px]">
+      <DialogContent className="p-6 sm:max-w-[640px]">
         <DialogHeader>
           <DialogTitle>画像を生成しますか？</DialogTitle>
         </DialogHeader>

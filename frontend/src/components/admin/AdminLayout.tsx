@@ -7,9 +7,17 @@ export default function AdminLayout() {
   const { store, baseImages, updateStore, toggleImageActive, addGeneratingImage } =
     useStore(storeId!)
 
+  if (!store) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <p className="text-gray-400">読み込み中...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar storeName={store?.name ?? "読み込み中..."} storeId={storeId!} />
+      <Sidebar storeName={store.name} storeId={storeId!} />
       <main className="flex-1 overflow-auto">
         <Outlet
           context={{

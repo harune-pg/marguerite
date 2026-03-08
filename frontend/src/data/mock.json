@@ -1,7 +1,7 @@
 {
   "stores": [
     {
-      "id": "store_demo_001",
+      "id": 1,
       "name": "カフェまるまる",
       "genre": "カフェ",
       "photo_url": "/demo/menu-coffee.jpg",
@@ -11,7 +11,7 @@
       "updated_at": "2026-03-07T15:30:00Z"
     },
     {
-      "id": "store_demo_002",
+      "id": 2,
       "name": "居酒屋おひさま",
       "genre": "居酒屋",
       "photo_url": "/demo/menu-yakitori.jpg",
@@ -24,8 +24,8 @@
   "baseImages": [
     {
       "id": "base_img_001",
-      "store_id": "store_demo_001",
-      "image_url": "/demo/base_cafe_01.jpg",
+      "store_id": 1,
+      "image_url": "/demo/cafe-interior-01.jpg",
       "segments": [
         {
           "id": 1,
@@ -64,6 +64,7 @@
         "store_name": "カフェまるまる",
         "genre": "カフェ",
         "photo_url": "/demo/menu-coffee.jpg",
+        "menu_description": "自家焙煎のスペシャルティコーヒーと手作りスイーツが自慢です",
         "description": "駅から徒歩5分。落ち着いた雰囲気で、ゆっくりとコーヒーを楽しめる隠れ家カフェです。"
       },
       "is_active": true,
@@ -71,8 +72,8 @@
     },
     {
       "id": "base_img_002",
-      "store_id": "store_demo_001",
-      "image_url": "/demo/base_cafe_02.jpg",
+      "store_id": 1,
+      "image_url": "/demo/cafe-interior-02.jpg",
       "segments": [
         {
           "id": 1,
@@ -95,6 +96,7 @@
         "store_name": "カフェまるまる",
         "genre": "カフェ",
         "photo_url": "/demo/menu-coffee.jpg",
+        "menu_description": "自家焙煎のスペシャルティコーヒーと手作りスイーツが自慢です",
         "description": "駅から徒歩5分。落ち着いた雰囲気で、ゆっくりとコーヒーを楽しめる隠れ家カフェです。"
       },
       "is_active": false,
@@ -102,8 +104,8 @@
     },
     {
       "id": "base_img_003",
-      "store_id": "store_demo_002",
-      "image_url": "/demo/base_izakaya_01.jpg",
+      "store_id": 2,
+      "image_url": "/demo/izakaya-interior-01.jpg",
       "segments": [
         {
           "id": 1,
@@ -134,6 +136,7 @@
         "store_name": "居酒屋おひさま",
         "genre": "居酒屋",
         "photo_url": "/demo/menu-yakitori.jpg",
+        "menu_description": "炭火で焼く自慢の焼き鳥と、旬の食材を使った創作料理",
         "description": "地元で20年愛される大衆居酒屋。新鮮な魚介と焼き鳥が人気。"
       },
       "is_active": true,

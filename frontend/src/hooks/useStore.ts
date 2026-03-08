@@ -10,7 +10,7 @@ function loadStores(): Store[] {
   return mockData.stores as Store[]
 }
 
-function loadBaseImages(storeId: string): BaseImage[] {
+function loadBaseImages(storeId: number): BaseImage[] {
   const stored = localStorage.getItem(`baseImages_${storeId}`)
   if (stored) {
     return JSON.parse(stored) as BaseImage[]
@@ -20,7 +20,8 @@ function loadBaseImages(storeId: string): BaseImage[] {
   )
 }
 
-export function useStore(storeId: string) {
+export function useStore(storeIdParam: string) {
+  const storeId = Number(storeIdParam)
   const [store, setStore] = useState<Store | null>(null)
   const [baseImages, setBaseImages] = useState<BaseImage[]>([])
 
@@ -34,7 +35,7 @@ export function useStore(storeId: string) {
   const updateStore = useCallback(
     (updates: Partial<Store>) => {
       const stores = loadStores()
-      const idx = stores.findIndex((s) => s.id === storeId)
+      const idx = stores.findIndex((s) => Number(s.id) === storeId)
       if (idx >= 0) {
         stores[idx] = {
           ...stores[idx],
