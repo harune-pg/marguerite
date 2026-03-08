@@ -62,7 +62,7 @@ def health_check():
 
 @app.post("/api/stores")
 def create_store(store_in: StoreCreate, session=Depends(get_session)):
-    store = Store(**store_in.dict())
+    store = Store(**store_in.model_dump())
     session.add(store)
     session.commit()
     session.refresh(store)

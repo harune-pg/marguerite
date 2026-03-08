@@ -12,8 +12,8 @@ Swagger UI (http://localhost:8000/docs) で動作確認できる。
 
 ### POST /api/stores（店舗登録）
 - [x] リクエスト: `{"name": "テスト店舗"}`
-- [x] uuid4 で id を生成し、DBにstoreレコードを作成
-- [x] レスポンス: `{"store_id": "...", "name": "テスト店舗"}`
+ - [x] DB の自動採番（オートインクリメント）で id を採番し、store レコードを作成
+ - [x] レスポンス: `{"store_id": 1, "name": "テスト店舗"}`
 
 ### GET /api/stores/{store_id}（店舗情報取得）
 - [x] store_id でDBを検索して返す

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, JSON
 from sqlmodel import SQLModel, Field
 
