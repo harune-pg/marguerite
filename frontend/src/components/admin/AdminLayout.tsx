@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useParams } from "react-router-dom"
+import { Link, Navigate, Outlet, useParams } from "react-router-dom"
 import Sidebar from "@/components/admin/Sidebar"
 import { useStore } from "@/hooks/useStore"
 
@@ -16,9 +16,9 @@ export default function AdminLayout() {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-3 bg-gray-50">
         <p className="text-gray-500">店舗が見つかりません</p>
-        <a href="/admin/register" className="text-sm text-indigo-500 hover:underline">
+        <Link to="/admin/register" className="text-sm text-indigo-500 hover:underline">
           新規登録はこちら
-        </a>
+        </Link>
       </div>
     )
   }

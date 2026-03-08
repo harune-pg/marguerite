@@ -1,5 +1,5 @@
 import { Upload } from "lucide-react"
-import { type FormEvent, useEffect, useState } from "react"
+import { type FormEvent, useEffect, useRef, useState } from "react"
 import { useOutletContext } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,6 +29,11 @@ export default function StoreSettingsPage() {
   const [description, setDescription] = useState("")
   const [menuDescription, setMenuDescription] = useState("")
   const [saved, setSaved] = useState(false)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  useEffect(() => {
+    return () => clearTimeout(savedTimerRef.current)
+  }, [])
 
   useEffect(() => {
     if (store) {
@@ -48,8 +53,8 @@ export default function StoreSettingsPage() {
       menu_description: menuDescription.trim() || undefined,
     })
     setSaved(true)
-    const timer = setTimeout(() => setSaved(false), 2000)
-    return () => clearTimeout(timer)
+    clearTimeout(savedTimerRef.current)
+    savedTimerRef.current = setTimeout(() => setSaved(false), 2000)
   }
 
   return (
@@ -134,7 +139,7 @@ export default function StoreSettingsPage() {
                   <div className="text-center">
                     <Upload className="mx-auto size-8 text-gray-400" />
                     <p className="mt-2 text-sm text-gray-600">
-                      クリックまたはドラッグ&ドロップ
+                      クリックして選択
                     </p>
                     <p className="mt-1 text-xs text-gray-400">
                       JPG, PNG（最大1MB）
@@ -150,6 +155,7 @@ export default function StoreSettingsPage() {
                       if (!file) return
                       if (file.size > 1024 * 1024) {
                         alert("ファイルサイズは1MB以下にしてください")
+                        e.currentTarget.value = ""
                         return
                       }
                       const reader = new FileReader()
