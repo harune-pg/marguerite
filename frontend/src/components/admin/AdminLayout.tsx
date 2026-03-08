@@ -9,8 +9,16 @@ export default function AdminLayout() {
     return <Navigate to="/admin/register" replace />
   }
 
-  const { store, baseImages, updateStore, toggleImageActive, addGeneratingImage } =
+  const { store, baseImages, loading, updateStore, toggleImageActive, generateImage } =
     useStore(storeId)
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="size-8 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+      </div>
+    )
+  }
 
   if (!store) {
     return (
@@ -33,7 +41,7 @@ export default function AdminLayout() {
             baseImages,
             updateStore,
             toggleImageActive,
-            addGeneratingImage,
+            generateImage,
           }}
         />
       </main>

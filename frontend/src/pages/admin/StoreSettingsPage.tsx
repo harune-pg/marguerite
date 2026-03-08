@@ -16,7 +16,7 @@ import type { Store } from "@/types"
 
 type SettingsContext = {
   store: Store
-  updateStore: (updates: Partial<Store>) => void
+  updateStore: (updates: Partial<Store> & { photoFile?: File }) => Promise<void>
 }
 
 const GENRES = ["カフェ", "居酒屋", "ファミレス", "ラーメン", "その他"] as const
@@ -28,6 +28,8 @@ export default function StoreSettingsPage() {
   const [genre, setGenre] = useState<Store["genre"] | "">("")
   const [description, setDescription] = useState("")
   const [menuDescription, setMenuDescription] = useState("")
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
@@ -44,17 +46,24 @@ export default function StoreSettingsPage() {
     }
   }, [store])
 
-  const handleSave = (e: FormEvent) => {
+  const handleSave = async (e: FormEvent) => {
     e.preventDefault()
-    updateStore({
-      name: name.trim(),
-      genre: genre || undefined,
-      description: description.trim() || undefined,
-      menu_description: menuDescription.trim() || undefined,
-    })
-    setSaved(true)
-    clearTimeout(savedTimerRef.current)
-    savedTimerRef.current = setTimeout(() => setSaved(false), 2000)
+    setSaving(true)
+    try {
+      await updateStore({
+        name: name.trim(),
+        genre: genre || undefined,
+        description: description.trim() || undefined,
+        menu_description: menuDescription.trim() || undefined,
+        photoFile: photoFile ?? undefined,
+      })
+      setPhotoFile(null)
+      setSaved(true)
+      clearTimeout(savedTimerRef.current)
+      savedTimerRef.current = setTimeout(() => setSaved(false), 2000)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -158,13 +167,7 @@ export default function StoreSettingsPage() {
                         e.currentTarget.value = ""
                         return
                       }
-                      const reader = new FileReader()
-                      reader.onload = () => {
-                        if (typeof reader.result === "string") {
-                          updateStore({ photo_url: reader.result })
-                        }
-                      }
-                      reader.readAsDataURL(file)
+                      setPhotoFile(file)
                     }}
                   />
                 </label>
@@ -176,9 +179,15 @@ export default function StoreSettingsPage() {
               <Button
                 type="submit"
                 className="bg-indigo-500 hover:bg-indigo-600"
+                disabled={saving}
               >
-                {saved ? "保存しました" : "保存する"}
+                {saving ? "保存中..." : saved ? "保存しました" : "保存する"}
               </Button>
+              {photoFile && (
+                <span className="text-sm text-gray-500">
+                  📎 {photoFile.name}
+                </span>
+              )}
             </div>
           </div>
         </form>

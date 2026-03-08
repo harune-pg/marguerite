@@ -9,48 +9,28 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card"
+import { createStore } from "@/lib/api"
 
 export default function RegisterPage() {
   const [storeName, setStoreName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!storeName.trim()) return
 
     setIsSubmitting(true)
+    setError("")
 
-    let existingStores: { id: number | string }[] = []
-    const rawStores = localStorage.getItem("stores")
-    if (rawStores) {
-      try {
-        const parsed = JSON.parse(rawStores)
-        existingStores = Array.isArray(parsed) ? parsed : []
-      } catch {
-        existingStores = []
-      }
+    try {
+      const res = await createStore(storeName.trim())
+      navigate(`/admin/stores/${res.store_id}?registered=true`)
+    } catch {
+      setError("登録に失敗しました。もう一度お試しください。")
+      setIsSubmitting(false)
     }
-    const maxId = existingStores.reduce(
-      (max: number, s: { id: number | string }) => {
-        const numericId = Number(s.id)
-        return Number.isFinite(numericId) ? Math.max(max, numericId) : max
-      },
-      0,
-    )
-    const storeId = maxId + 1
-
-    const newStore = {
-      id: storeId,
-      name: storeName.trim(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-
-    existingStores.push(newStore)
-    localStorage.setItem("stores", JSON.stringify(existingStores))
-
-    navigate(`/admin/stores/${storeId}?registered=true`)
   }
 
   return (
@@ -81,6 +61,9 @@ export default function RegisterPage() {
                     disabled={isSubmitting}
                   />
                 </div>
+                {error && (
+                  <p className="text-sm text-red-500">{error}</p>
+                )}
               </div>
             </form>
           </CardContent>
