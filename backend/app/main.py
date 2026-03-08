@@ -6,7 +6,7 @@ from pathlib import Path
 from random import choice
 from typing import List
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import select
@@ -20,6 +20,7 @@ from app.models import (
     StoreCreate,
     StoreUpdate,
 )
+from app.pipeline import run_pipeline
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -176,15 +177,27 @@ def update_base_image(
     "/api/stores/{store_id}/base-images/generate",
     response_model=BaseImageRead,
 )
-def generate_base_image(store_id: int, session=Depends(get_session)):
+def generate_base_image(
+    store_id: int,
+    background_tasks: BackgroundTasks,
+    session=Depends(get_session),
+):
     store = session.get(Store, store_id)
     if not store:
         raise HTTPException(status_code=404, detail="Store not found")
 
+    store_info = {
+        "name": store.name,
+        "genre": store.genre or "",
+        "photo_description": "",
+        "menu_description": store.menu_description or "",
+        "description": store.description or "",
+    }
+
     base_image = BaseImage(
         store_id=store_id,
-        image_url="/images/mock/sample.png",
-        segments={"mock": True, "segments": []},
+        image_url="",
+        segments=None,
         generation_input={
             "store_id": store.id,
             "name": store.name,
@@ -199,6 +212,9 @@ def generate_base_image(store_id: int, session=Depends(get_session)):
     session.add(base_image)
     session.commit()
     session.refresh(base_image)
+
+    background_tasks.add_task(run_pipeline, base_image.id, store_info)
+
     return _as_base_image_read(base_image)
 
 
@@ -216,15 +232,13 @@ def play(store_id: int, session=Depends(get_session)):
         raise HTTPException(status_code=404, detail="No active base images")
 
     selected: BaseImage = choice(active_images)
+    segments = selected.segments or {}
+
     return {
         "store_name": store.name,
-        "original_image_url": "/images/mock/original.png",
-        "modified_image_url": "/images/mock/modified.png",
-        "differences": [
-            {"cx": 25.5, "cy": 30.2, "radius": 5.0},
-            {"cx": 70.1, "cy": 65.8, "radius": 4.5},
-            {"cx": 50.0, "cy": 80.0, "radius": 6.0},
-        ],
+        "original_image_url": selected.image_url,
+        "modified_image_url": segments.get("modified_image_url", ""),
+        "differences": segments.get("differences", []),
         "store_info": {
             "genre": store.genre,
             "recommendation": store.menu_description or "",

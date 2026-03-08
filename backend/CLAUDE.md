@@ -63,33 +63,51 @@ uv run uvicorn app.main:app --reload
 | is_active | bool | 客に配信中か（default: False） |
 | created_at | datetime | |
 
-## mockの方針
-画像生成パイプラインは別途開発中。以下のAPIはmockレスポンスを返す:
+## 画像パイプラインとの繋ぎ込み
 
-### POST /api/stores/{store_id}/base-images/generate
-- ダミーの base_image レコードをDBに作成して返す
-- image_url は仮の文字列（例: "/images/mock/sample.png"）
-- segments は仮のJSON
-- generation_input にその時点の店舗情報を保存
+画像生成パイプライン (`~/marguerite_spec/image-pipeline/`) の出力をシードデータとして投入する。
+
+### セットアップ手順
+```bash
+# DBリセット & シード投入
+rm -f database.db
+uv run python seed.py
+```
+
+### seed.py の動作
+1. `image-pipeline/seeds/stores.json` から店舗情報を読み込み
+2. `image-pipeline/output/store_N/` から画像・diffs.jsonを読み込み
+3. 画像を `static/images/store_N/` にコピー
+4. bbox座標 (px) → cx/cy/radius (%) に変換
+5. Store + BaseImage (is_active=True) をDBに登録
 
 ### POST /api/stores/{store_id}/play
 - active な base_image からランダムに1つ選ぶ
-- ダミーの differences を返す
+- `base_image.segments` に格納された実データを返す
 - レスポンス例:
 ```json
 {
-  "store_name": "テスト店舗",
-  "original_image_url": "/images/mock/original.png",
-  "modified_image_url": "/images/mock/modified.png",
+  "store_name": "酒肴処 赤提灯 よりみち",
+  "original_image_url": "/static/images/store_1/original.png",
+  "modified_image_url": "/static/images/store_1/modified.png",
   "differences": [
-    {"cx": 25.5, "cy": 30.2, "radius": 5.0},
-    {"cx": 70.1, "cy": 65.8, "radius": 4.5},
-    {"cx": 50.0, "cy": 80.0, "radius": 6.0}
+    {"cx": 84.4, "cy": 79.6, "radius": 7.6},
+    {"cx": 96.9, "cy": 21.7, "radius": 14.5},
+    {"cx": 17.6, "cy": 58.7, "radius": 4.5}
   ],
   "store_info": {
-    "genre": "カフェ",
-    "recommendation": "自家焙煎コーヒー",
-    "description": "駅前の隠れ家カフェ"
+    "genre": "居酒屋",
+    "recommendation": "炙りしめ鯖",
+    "description": "路地裏の昭和レトロな居酒屋..."
   }
 }
 ```
+
+### POST /api/stores/{store_id}/base-images/generate
+- 現時点ではmock（ダミーレコード作成のみ）
+- パイプラインはローカル実行(Apple Silicon + MLX)が必要なため、将来的に非同期ジョブとして統合予定
+
+### 座標系
+- `cx`, `cy`: 画像左上原点、%座標 (0-100)
+- `radius`: 画像長辺に対する%
+- タップ判定: タップ位置が (cx, cy) から radius% 以内なら正解
