@@ -91,10 +91,11 @@ QRコード読み取り
   - 店の紹介文（200文字以内）
   - (SHOULD) 店の内装写真（雰囲気を画像生成に反映）
 - 間違い探し管理:
-  - [画像生成] ボタン → 現在の店舗情報でベース画像1枚+セグメント分割を生成・保存
+  - [画像生成] ボタン → 現在の店舗情報でベース画像+間違い画像+差分座標を一括生成（バックグラウンド実行）
+  - 生成中は管理画面がポーリングで状態を監視し、完了時に自動更新
   - 生成済みベース画像のプレビュー一覧（複数保持可能、各画像の生成時の入力情報も表示）
   - 各画像ごとに active/inactive を切り替え可能
-  - active な画像が客にランダムで配信される（その上で毎回異なる間違いが生成される）
+  - active な画像が客にランダムで配信される
   - (SHOULD) 1回の生成でベース画像を2〜3枚生成して選べるようにする
 
 ---
@@ -106,22 +107,16 @@ QRコード読み取り
 ### 4-1. 客向けAPI（公開）
 
 #### `POST /api/stores/{store_id}/play`
-客がゲーム開始時に呼ぶ。ベース画像からランダムに間違いを生成して返す。
-生成に時間がかかるため、FE側はローディング演出で待つ。
+客がゲーム開始時に呼ぶ。activeなベース画像からランダムに1つ選び、事前生成済みの間違い画像と差分座標を返す。
 
-**Request:**
-```json
-{
-  "difficulty": "easy"
-}
-```
+**Request:** ボディなし
 
 **Response 200:**
 ```json
 {
   "store_name": "カフェまるまる",
-  "original_image_url": "/images/base/xxx_original.png",
-  "modified_image_url": "/images/generated/yyy_modified.png",
+  "original_image_url": "/static/images/{base_image_id}/original.png",
+  "modified_image_url": "/static/images/{base_image_id}/modified.png",
   "differences": [
     {"cx": 25.5, "cy": 30.2, "radius": 5.0},
     {"cx": 70.1, "cy": 65.8, "radius": 4.5},
@@ -136,8 +131,8 @@ QRコード読み取り
 ```
 
 - `cx`, `cy`: 間違い箇所の中心（画像幅・高さに対する%、0-100）
-- `radius`: 判定半径（画像幅に対する%）
-- 毎回異なる間違いが生成される
+- `radius`: 判定半径（画像長辺に対する%）
+- activeな画像が複数あればランダムに選ばれるため、プレイごとに異なる問題が出る
 
 **Response 404:** 店舗が存在しない or アクティブなベース画像がない
 
@@ -153,10 +148,10 @@ QRコード読み取り
 }
 ```
 
-**Response 201:**
+**Response 200:**
 ```json
 {
-  "store_id": "store_xxx",
+  "store_id": 1,
   "name": "カフェまるまる"
 }
 ```
@@ -173,15 +168,21 @@ QRコード読み取り
 - `description`: string（任意）
 
 #### `POST /api/stores/{store_id}/base-images/generate`
-ベース画像の生成をトリガー。現在の店舗情報でベース画像+セグメント分割を生成する。
+画像生成をトリガー。現在の店舗情報でベース画像+セグメント分割+間違い画像+差分座標を一括生成する（バックグラウンド実行）。
 
-**Response 202:** 生成開始を受理（非同期処理）
+**Response 200:** 生成開始。BaseImageレコードが作成される（image_urlは空、生成完了後に更新される）。
 ```json
 {
-  "generation_id": "gen_xxx",
-  "status": "processing"
+  "base_image_id": "abc123",
+  "store_id": 1,
+  "image_url": "",
+  "segments": null,
+  "generation_input": {...},
+  "is_active": false,
+  "created_at": "2026-03-08T12:00:00Z"
 }
 ```
+FE側は5秒間隔でベース画像一覧をポーリングし、`image_url`が空でなくなったら生成完了と判断する。
 
 #### `GET /api/stores/{store_id}/base-images`
 生成済みベース画像一覧。
@@ -221,10 +222,11 @@ QRコード読み取り
 
 | カラム | 型 | 説明 |
 |--------|-----|------|
-| id | string (UUID) | PK |
+| id | int (autoincrement) | PK |
 | name | string | 店名 |
-| genre | string | ジャンル |
-| photo_url | string | 看板メニュー写真パス |
+| genre | string nullable | ジャンル |
+| photo_url | string nullable | 看板メニュー写真パス |
+| menu_description | string nullable | 看板メニューの説明 |
 | description | string nullable | 紹介文 |
 | created_at | datetime | |
 | updated_at | datetime | |
@@ -234,21 +236,29 @@ QRコード読み取り
 | カラム | 型 | 説明 |
 |--------|-----|------|
 | id | string (UUID) | PK |
-| store_id | string | FK → stores.id |
+| store_id | int | FK → stores.id |
 | image_url | string | ベース画像パス |
 | segments | JSON | セグメント分割データ |
 | generation_input | JSON | 生成時の店舗情報スナップショット |
 | is_active | boolean | 客に配信中か（default: false） |
 | created_at | datetime | |
 
-### segments JSON構造（暫定）
+### segments JSON構造
+画像生成パイプライン完了後にBaseImageのsegmentsカラムに格納される。
 ```json
-[
-  {"id": 1, "mask_url": "...", "cx": 25.5, "cy": 30.2, "radius": 5.0, "selectable": true},
-  {"id": 2, "mask_url": "...", "cx": 70.1, "cy": 65.8, "radius": 4.5, "selectable": false}
-]
+{
+  "modified_image_url": "/static/images/{base_image_id}/modified.png",
+  "image_size": {"w": 1024, "h": 768},
+  "differences": [
+    {"cx": 25.5, "cy": 30.2, "radius": 5.0},
+    {"cx": 70.1, "cy": 65.8, "radius": 4.5},
+    {"cx": 50.0, "cy": 80.0, "radius": 6.0}
+  ],
+  "diffs_detail": [...]
+}
 ```
-- `selectable`: 間違い生成に使用可能か（顔や極小領域はfalse）
+- `modified_image_url`: 間違いが仕込まれた画像のパス
+- `differences`: 間違い箇所の座標（play APIでそのまま返される）
 
 ---
 
@@ -258,51 +268,35 @@ QRコード読み取り
 - **メイン**: セグメント + インペイント方式（方針A）
 - **フォールバック**: デモ用画像を事前準備（方針C）
 
-### パイプラインの流れ（2段階構成）
+### パイプラインの流れ（1段階・一括生成）
 
-#### 事前準備（店側操作時）
+店側が「生成する」ボタンを押すと、バックグラウンドで以下が一括実行される。
+
 ```
 Input: 店舗情報（名前、ジャンル、写真、紹介文）
   |
-[Step 1] ベース画像生成
-  AI画像生成で、店のテーマを反映した間違い探し向けのイラストを生成
-  看板メニュー写真の要素を画像に組み込む
+[Step 1] プロンプト生成
+  店舗情報からイラスト用プロンプトを生成
   |
-[Step 2] セグメント分割
-  生成画像をセマンティックセグメンテーションで領域分割
+[Step 2] ベース画像生成
+  OpenAI API (gpt-image-1) でイラストを生成
   |
-Output: ベース画像 + セグメントデータ → 保存
-```
-
-- 店側がプレビューを確認 → [デプロイ] で公開
-- 気に入らなければ [再生成] で最初からやり直し
-- MVPではベース画像は1枚
-
-#### ゲーム開始時（客がプレイするたび）
-```
-Input: 保存済みのベース画像 + セグメントデータ
+[Step 3] セグメント分割
+  Flood fill で領域分割 → GPT-4o Vision でラベル付け
   |
-[Step 3] 間違い箇所の選択（ランダム）
-  難易度に応じてN個のセグメントを選択（easy=3, hard=5）
-  人の顔や極端に小さい領域は除外
-  |
-[Step 4] インペイント
-  選択したセグメント領域のみをインペイントで再生成
-  → 元画像との差分が「間違い」になる
+[Step 4] 間違い箇所の選択 + インペイント
+  3箇所を選択し、OpenAI API でインペイント → 差分画像を生成
   |
 [Step 5] 差分座標の算出
-  変更したセグメントの中心座標・サイズを記録
+  変更した箇所の中心座標・サイズを記録
   |
-Output: 元画像、改変画像、差分座標リスト
-  → ローディング演出「間違いを仕込み中...」の間に生成
-  → 毎回異なる間違いが出る
+Output: 元画像 (original.png)、間違い画像 (modified.png)、差分座標
+  → static/images/{base_image_id}/ に保存
+  → DBのBaseImageレコードを更新（image_url, segments）
 ```
 
-### 未確定事項
-- 使用するセグメンテーションモデル（SAM等）
-- インペイントの手法（Stable Diffusion inpainting等）
-- Groqで画像生成がどこまでできるか
-- 生成1回あたりの所要時間
+- 生成完了後、管理画面で active に切り替えると客に配信される
+- 気に入らなければ再度「生成する」で新しい画像セットを生成可能
 
 ---
 
@@ -313,7 +307,7 @@ Output: 元画像、改変画像、差分座標リスト
 | FE | React (+ TypeScript) | AI agentで開発。ゲーム画面のタッチ操作に use-gesture 等を活用 |
 | BE | FastAPI (Python) | Kさん担当 |
 | DB | SQLite | MVPにはこれで十分 |
-| 画像生成 | Groq API + セグメンテーション + インペイント | 要検証 |
+| 画像生成 | OpenAI API (gpt-image-1) + Flood fill + GPT-4o Vision | |
 | QRコード | qrcode.react（FEで生成） | BE不要 |
 | デプロイ | 未定（ローカル実行でも可） | |
 
@@ -324,7 +318,7 @@ Output: 元画像、改変画像、差分座標リスト
 ### MUST
 - 客側: QR読み取り → ゲーム画面 → プレイ → 結果画面
 - 店側: 店舗登録 → QRコード発行 → 間違い探し管理 → デプロイ
-- 間違い探し: 事前生成方式、1店舗あたり最低2-3セット
+- 間違い探し: 一括生成方式（ベース画像+間違い画像+差分座標を一括生成）
 - スマホ縦型対応UI
 
 ### SHOULD
@@ -339,5 +333,4 @@ Output: 元画像、改変画像、差分座標リスト
 - 待ち時間連動の難易度自動調整
 - QR読み取り角度による難易度変化
 - ランキング / リーダーボード
-- リアルタイム画像生成
 - 認証機能
