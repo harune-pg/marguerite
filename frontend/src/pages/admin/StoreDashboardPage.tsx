@@ -66,8 +66,14 @@ export default function StoreDashboardPage() {
               type="button"
               onClick={() => {
                 setBannerDismissed(true)
-                searchParams.delete("registered")
-                setSearchParams(searchParams, { replace: true })
+                setSearchParams(
+                  (prevParams) => {
+                    const newParams = new URLSearchParams(prevParams)
+                    newParams.delete("registered")
+                    return newParams
+                  },
+                  { replace: true },
+                )
               }}
               className="shrink-0 text-indigo-500 hover:text-indigo-700"
             >

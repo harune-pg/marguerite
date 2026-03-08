@@ -24,7 +24,7 @@ export default function QrCodeModal({
   const playUrl = `${window.location.origin}/play/${storeId}`
 
   const handleDownload = useCallback(() => {
-    const svg = document.querySelector("#qr-code-svg svg") as SVGSVGElement
+    const svg = document.querySelector<SVGSVGElement>("#qr-code-svg svg")
     if (!svg) return
 
     const canvas = document.createElement("canvas")

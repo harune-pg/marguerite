@@ -1,5 +1,5 @@
 import { Upload } from "lucide-react"
-import { useEffect, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,7 +39,7 @@ export default function StoreSettingsPage() {
     }
   }, [store])
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = (e: FormEvent) => {
     e.preventDefault()
     updateStore({
       name: name.trim(),
@@ -147,8 +147,13 @@ export default function StoreSettingsPage() {
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
-                      const url = URL.createObjectURL(file)
-                      updateStore({ photo_url: url })
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        if (typeof reader.result === "string") {
+                          updateStore({ photo_url: reader.result })
+                        }
+                      }
+                      reader.readAsDataURL(file)
                     }}
                   />
                 </label>
